@@ -1,0 +1,14 @@
+# 构建产物
+bin/
+dist/
+
+# 本地密钥（RABBITCLI_TOKEN 等禁止入库）
+.env.local
+.env*.local
+
+# Go
+*.test
+*.out
+
+# macOS
+.DS_Store
