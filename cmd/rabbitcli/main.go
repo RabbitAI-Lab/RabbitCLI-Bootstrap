@@ -1,4 +1,4 @@
-// rabbitcli — a generic, agent-friendly CLI scaffold (static single binary).
+// rabbitcli — a generic, agent-friendly bootstrap CLI (static single binary).
 //
 // Three-layer command system:
 //  1. Shortcuts        rabbitcli demo +hello

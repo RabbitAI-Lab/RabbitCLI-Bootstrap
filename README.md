@@ -1,4 +1,4 @@
-# cli-scaffold（Go 版）
+# RabbitCLI-Bootstrap（Go 版）
 
 一个通用的、对人和 AI Agent 都友好的 CLI 脚手架。**纯 Go 标准库实现，零依赖，编译产出静态单文件二进制**，目标机器无需安装任何运行时（包括 Node、Go 本身），直接执行即可；原生支持麒麟操作系统（linux/amd64、arm64、loong64）。
 

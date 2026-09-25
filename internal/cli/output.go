@@ -1,4 +1,4 @@
-// Package cli implements the rabbitcli scaffold: output contract, config,
+// Package cli implements the rabbitcli bootstrap CLI: output contract, config,
 // HTTP client, self-update and the command groups.
 //
 // Output contract:
