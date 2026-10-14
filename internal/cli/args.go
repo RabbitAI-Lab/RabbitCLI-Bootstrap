@@ -16,6 +16,7 @@ type Args struct {
 var boolFlags = map[string]bool{
 	"dry-run": true, "page-all": true, "help": true, "h": true,
 	"check": true, "verbose": true, "debug": true, "no-wait": true,
+	"list": true,
 }
 
 // ParseArgs parses flags in any position: --k=v, --k v, -h.

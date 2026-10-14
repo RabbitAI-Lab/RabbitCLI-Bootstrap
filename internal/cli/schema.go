@@ -101,6 +101,17 @@ var schemas = map[string]CommandSchema{
 		Subcommands: []string{"list", "install [--dir PATH]", "new <name>"},
 		Examples:    []string{"rabbitcli skills list", "rabbitcli skills install --dir ~/.agents/skills"},
 	},
+	"mcp": {
+		Name: "mcp", Description: "MCP server over stdio: register every command group as a tool for local agents",
+		Usage: "rabbitcli mcp [flags]",
+		Flags: []FlagSchema{
+			{Name: "tools", Type: "string", Desc: "Comma-separated whitelist of command groups (default: all)"},
+			{Name: "prefix", Type: "string", Desc: "Prefix for tool names, e.g. \"rabbitcli_\""},
+			{Name: "timeout", Type: "int", Desc: "Per-call subprocess timeout in seconds (default 300; 0 = none)"},
+			{Name: "list", Type: "bool", Desc: "Print the tool inventory and exit"},
+		},
+		Examples: []string{"rabbitcli mcp", "rabbitcli mcp --list", "rabbitcli mcp --tools api,demo --prefix rabbitcli_"},
+	},
 }
 
 // RunSchema implements the schema command.

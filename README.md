@@ -16,6 +16,7 @@
 - **日志框架** — 基于标准库 `log/slog`（零依赖），JSON Lines 按天落盘到 `<config-dir>/logs/`，token 自动脱敏，不污染 stdout/stderr 输出契约
 - **Agent Skills** — 内置 SKILL.md（go:embed 随二进制分发），`skills install` 一键装进 Agent，`skills new` 脚手架自定义技能
 - **schema 自省** — `rabbitcli schema [group]` 输出机器可读的命令/参数结构，Agent 可自助发现用法
+- **MCP Server** — `rabbitcli mcp` 一条命令把全部接口注册为 MCP tools（stdio），本地 Agent（ZCode / Claude Desktop / Cursor）直连即用，零依赖手写协议实现
 - **输出消毒** — API 返回文本中的 ANSI/OSC 终端控制序列自动剥离，防终端注入，JSON 结构不变
 - **可选认证** — `auth login` 实现 OAuth2 device flow（RFC 8628，需服务端两个端点），不配置也能用静态 token，完全不强制
 
@@ -86,6 +87,32 @@ rabbitcli schema api                           # 单个命令组的 flags/positi
 ```
 
 自定义技能放在 `internal/cli/skills/<name>/SKILL.md`，重新构建即随二进制分发。
+
+## MCP Server（给本地 Agent 用）
+
+`rabbitcli mcp` 启动一个 stdio MCP（Model Context Protocol）服务器，把**所有命令组**（内置 + 自注册服务）自动注册为 MCP tools，本地 Agent 无需任何胶水代码即可调用：
+
+```bash
+rabbitcli mcp                                  # 启动 stdio MCP 服务器（全部接口）
+rabbitcli mcp --list                           # 查看将注册的 tools 清单
+rabbitcli mcp --tools api,demo                 # 只暴露指定命令组
+rabbitcli mcp --prefix rabbitcli_ --env dev    # 工具名加前缀；--env/--config-dir 透传给每次调用
+rabbitcli mcp --timeout 60                     # 单次调用子进程超时（秒，默认 300，0 = 不限）
+```
+
+Agent 客户端配置（stdio 类型，command = 本二进制路径）：
+
+```json
+{ "mcpServers": { "rabbitcli": { "command": "/usr/local/bin/rabbitcli", "args": ["mcp"] } } }
+```
+
+设计要点：
+
+- **每个命令组 = 一个 tool**，描述（子命令/flags/示例）由 `CommandSchema` 自动生成；新增服务文件后 MCP 侧零配置自动出现
+- **tool 调用 = 子进程执行** `rabbitcli <group> <args...>`，stdout 的 JSON envelope 原样作为结果；失败（非零退出码）时 stderr envelope + `isError:true`，与 CLI 行为完全一致
+- **协议零依赖**：纯标准库实现 JSON-RPC 2.0（换行分帧），支持 `initialize` / `tools/list` / `tools/call` / `ping`，兼容 MCP 协议版本 2024-11-05 / 2025-03-26 / 2025-06-18
+- stdout 专属协议通道，日志照常只写文件；长调用不阻塞并发 ping
+
 
 ## 可选认证（OAuth2 device flow）
 
@@ -196,6 +223,8 @@ internal/cli/
   registry.go           # 服务注册表（RegisterService）
   cmd_api.go            # raw API 调用
   cmd_update.go         # update 命令
+  mcpserver.go          # MCP stdio 服务器（JSON-RPC，零依赖）
+  cmd_mcp.go            # mcp 命令组（tools 注册与子进程执行）
   update_test.go        # 版本比较单测
 internal/services/      # 你的接口放这里：放一个 .go 文件即自动注册（demo.go 为示例）
 Makefile                # build / release / install

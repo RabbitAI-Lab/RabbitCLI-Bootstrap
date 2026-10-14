@@ -18,6 +18,7 @@ Built-in command groups:
   schema     Machine-readable command schemas (for humans and Agents)
   skills     Agent skills: list / install / scaffold SKILL.md docs
   auth       Optional OAuth2 device login (static tokens work without it)
+  mcp        MCP server over stdio: expose every command as a tool for local agents
 
 Service command groups self-register from internal/services/ files
 (see ` + "`rabbitcli schema`" + ` for the full list).
@@ -66,7 +67,8 @@ func Main() {
 		fmt.Println(Name + " " + Version)
 
 	case group == "config" || group == "env" || group == "api" || group == "update" ||
-		group == "schema" || group == "skills" || group == "auth" || GetService(group) != nil:
+		group == "schema" || group == "skills" || group == "auth" || group == "mcp" ||
+		GetService(group) != nil:
 		a, err := ParseArgs(rest)
 		if err != nil {
 			EmitError(err)
@@ -102,6 +104,8 @@ func Main() {
 			runErr = RunSkills(a)
 		case "auth":
 			runErr = RunAuth(a)
+		case "mcp":
+			runErr = RunMCP(a)
 		default:
 			// Auto-registered service from internal/services/
 			runErr = GetService(group).Handler(a)
